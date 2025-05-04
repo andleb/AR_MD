@@ -1,22 +1,21 @@
+import time
+from typing import *
+
+import pytorch_lightning as pl
 import torch
 from torch import nn
 from torch.nn import functional as F
-from torch.utils.data import DataLoader, Dataset
-import pytorch_lightning as pl
+from torch.utils.data import Dataset
 from transformers import BertConfig
 from transformers.models.bert.modeling_bert import (
     BertPreTrainedModel,
     BertEncoder,
 )
 from transformers.optimization import get_linear_schedule_with_warmup
-from typing import *
-import logging
-import time
 
 
 class MDTrajectoryDataset(Dataset):
     def __init__(self, trajectories: List[torch.Tensor], states: Optional[List[int]] = None):
-
         # self.trajectories = trajectories
         self.states = states
 
@@ -37,9 +36,9 @@ class MDTrajectoryDataset(Dataset):
         normalized_traj = self.normalized_trajectories[idx]  # [seq_len, features]
         output = {
             'trajectories': normalized_traj,
-            'lengths': torch.tensor([self.lengths[idx]]),
-            'means': self.means[idx],
-            'stds': self.stds[idx]
+            'lengths'     : torch.tensor([self.lengths[idx]]),
+            'means'       : self.means[idx],
+            'stds'        : self.stds[idx]
         }
 
         if self.states is not None:
@@ -57,7 +56,7 @@ def collate_trajectories(batch):
         lengths.extend(item['lengths'])
     return {
         'trajectories': trajectories,
-        'lengths': torch.tensor(lengths)
+        'lengths'     : torch.tensor(lengths)
     }
 
 
@@ -104,15 +103,14 @@ class StateClassifier(nn.Module):
         return x
 
 
-
 class MDTrajectoryTransformerBase(BertPreTrainedModel):
     """Base transformer model with both trajectory prediction and state classification."""
 
     def __init__(
-        self,
-        config,
-        n_features: int,
-        n_states: int = 0,  # Default to 0 to disable state prediction
+            self,
+            config,
+            n_features: int,
+            n_states: int = 0,  # Default to 0 to disable state prediction
     ) -> None:
         super().__init__(config)
         self.config = config
@@ -153,20 +151,20 @@ class MDTrajectoryTransformerBase(BertPreTrainedModel):
                 self.config.max_position_embeddings,
                 self.config.hidden_size
             ),
-            'LayerNorm': nn.LayerNorm(self.config.hidden_size, eps=self.config.layer_norm_eps),
-            'dropout': nn.Dropout(self.config.hidden_dropout_prob)
+            'LayerNorm'          : nn.LayerNorm(self.config.hidden_size, eps=self.config.layer_norm_eps),
+            'dropout'            : nn.Dropout(self.config.hidden_dropout_prob)
         })
         return embeddings
 
     def forward(
-        self,
-        features: torch.Tensor,
-        attention_mask: Optional[torch.Tensor] = None,
-        return_embeddings: bool = False,
-        position_ids: Optional[torch.Tensor] = None,
-        output_attentions: bool = False,
-        output_hidden_states: bool = False,
-        return_dict: bool = True,
+            self,
+            features: torch.Tensor,
+            attention_mask: Optional[torch.Tensor] = None,
+            return_embeddings: bool = False,
+            position_ids: Optional[torch.Tensor] = None,
+            output_attentions: bool = False,
+            output_hidden_states: bool = False,
+            return_dict: bool = True,
     ) -> Union[Dict[str, torch.Tensor], torch.Tensor]:
         """Forward pass with option to output attention patterns"""
         # Add batch dimension if needed
@@ -218,7 +216,7 @@ class MDTrajectoryTransformerBase(BertPreTrainedModel):
 
         if return_dict:
             outputs = {
-                'trajectory': trajectory_pred,
+                'trajectory'       : trajectory_pred,
                 'last_hidden_state': sequence_output,
             }
             if output_attentions:
@@ -235,19 +233,18 @@ class MDTrajectoryTransformerBase(BertPreTrainedModel):
         return trajectory_pred
 
 
-
 class MDTrajectoryTransformer(MDTrajectoryTransformerBase, pl.LightningModule):
     def __init__(
-        self,
-        config,
-        n_features: int,
-        n_states: int = 0,
-        lr: float = 1e-4,
-        weight_decay: float = 0.0,
-        epochs: int = 100,
-        warmup_epochs: int = 10,
-        trajectory_loss_weight: float = 1.0,
-        state_loss_weight: float = 1.0,
+            self,
+            config,
+            n_features: int,
+            n_states: int = 0,
+            lr: float = 1e-4,
+            weight_decay: float = 0.0,
+            epochs: int = 100,
+            warmup_epochs: int = 10,
+            trajectory_loss_weight: float = 1.0,
+            state_loss_weight: float = 1.0,
     ):
 
         pl.LightningModule.__init__(self)
@@ -345,11 +342,11 @@ class MDTrajectoryTransformer(MDTrajectoryTransformerBase, pl.LightningModule):
         )
 
         return {
-            "optimizer": optimizer,
+            "optimizer"   : optimizer,
             "lr_scheduler": {
                 "scheduler": scheduler,
                 "frequency": 1,
-                "interval": "epoch"
+                "interval" : "epoch"
             }
         }
 
@@ -372,12 +369,12 @@ class MDTrajectoryTransformer(MDTrajectoryTransformerBase, pl.LightningModule):
 
     @torch.no_grad()
     def predict_trajectory(
-        self,
-        initial_frames: torch.Tensor,
-        n_steps: int,
-        means: Optional[torch.Tensor] = None,
-        stds: Optional[torch.Tensor] = None,
-        stride: int = 1,
+            self,
+            initial_frames: torch.Tensor,
+            n_steps: int,
+            means: Optional[torch.Tensor] = None,
+            stds: Optional[torch.Tensor] = None,
+            stride: int = 1,
     ):
         """
         Predict multiple trajectories simultaneously
@@ -391,7 +388,6 @@ class MDTrajectoryTransformer(MDTrajectoryTransformerBase, pl.LightningModule):
         """
         device = initial_frames.device
         n_traj, seq_length, n_features = initial_frames.shape
-
 
         if means is None:
             means = initial_frames.mean(dim=1)
@@ -418,22 +414,22 @@ class MDTrajectoryTransformer(MDTrajectoryTransformerBase, pl.LightningModule):
 
             # Add to normalized trajectory
             end_idx = min(seq_length + t + stride, trajectory_norm.size(1))
-            trajectory_norm[:, seq_length + t:end_idx] = next_frames[:, :end_idx-(seq_length + t)]
+            trajectory_norm[:, seq_length + t:end_idx] = next_frames[:, :end_idx - (seq_length + t)]
 
             # Update current sequence by sliding window
-            current_sequence = trajectory_norm[:, t+1:seq_length+t+1]
+            current_sequence = trajectory_norm[:, t + 1:seq_length + t + 1]
 
         # Un-normalize the trajectories
         means_expanded = means.unsqueeze(1)  # [n_traj, 1, n_features]
-        stds_expanded = stds.unsqueeze(1)    # [n_traj, 1, n_features]
+        stds_expanded = stds.unsqueeze(1)  # [n_traj, 1, n_features]
         trajectories = trajectory_norm * stds_expanded + means_expanded
 
         return trajectories
 
     @torch.no_grad()
     def classify_state(
-        self,
-        trajectories: Union[torch.Tensor, List[torch.Tensor]],
+            self,
+            trajectories: Union[torch.Tensor, List[torch.Tensor]],
     ) -> Dict[str, torch.Tensor]:
         """
         Classify the state of one or more trajectories.
@@ -472,7 +468,7 @@ class MDTrajectoryTransformer(MDTrajectoryTransformerBase, pl.LightningModule):
         predictions = torch.argmax(probabilities, dim=-1)
 
         return {
-            'logits': state_logits,
+            'logits'       : state_logits,
             'probabilities': probabilities,
-            'predictions': predictions
+            'predictions'  : predictions
         }

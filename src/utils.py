@@ -1,20 +1,16 @@
 """
 Misc shared utility functions
 """
-import os
 import glob
 import hashlib
 import logging
+import os
 from typing import *
-
 from typing import Optional
 
-import requests
-
-import numpy as np
 import matplotlib.pyplot as plt
-import lightning as pl
-
+import numpy as np
+import requests
 from pytorch_lightning.callbacks import Callback
 
 
@@ -57,7 +53,7 @@ def num_to_groups(num: int, divisor: int) -> List[int]:
     return arr
 
 
-def seq_to_groups(seq:Sequence[Any], divisor:int) -> List[Sequence[Any]]:
+def seq_to_groups(seq: Sequence[Any], divisor: int) -> List[Sequence[Any]]:
     """
     Generates a list of items of at most <divisor> items
     >>> seq_to_groups([1,2,3,4,5,6,7,8,9], 3)
@@ -65,7 +61,7 @@ def seq_to_groups(seq:Sequence[Any], divisor:int) -> List[Sequence[Any]]:
     >>> seq_to_groups([1,2,3,4,5,6,7,8,9], 4)
     [[1, 2, 3, 4], [5, 6, 7, 8], [9]]
     """
-    return [seq[i:i+divisor] for i in range(0, len(seq), divisor)]
+    return [seq[i:i + divisor] for i in range(0, len(seq), divisor)]
 
 
 def tolerant_comparison_check(values, cmp: Literal[">=", "<="], v):
@@ -91,7 +87,7 @@ def tolerant_comparison_check(values, cmp: Literal[">=", "<="], v):
 
 
 def modulo_with_wrapped_range(
-    vals, range_min: float = -np.pi, range_max: float = np.pi
+        vals, range_min: float = -np.pi, range_max: float = np.pi
 ):
     """
     Modulo with wrapped range -- capable of handing a range with a negative min
@@ -150,10 +146,9 @@ def md5_all_py_files(dirname: str) -> str:
     hash_md5 = hashlib.md5()
     for fname in sorted(fnames):
         with open(fname, "rb") as f:
-            for chunk in iter(lambda: f.read(2**20), b""):
+            for chunk in iter(lambda: f.read(2 ** 20), b""):
                 hash_md5.update(chunk)
     return hash_md5.hexdigest()
-
 
 
 class LossTracker(Callback):
@@ -168,8 +163,8 @@ class LossTracker(Callback):
     def state_dict(self) -> Dict[str, Any]:
         return {
             "training_losses": self.training_losses,
-            "training_steps": self.training_steps,
-            "current_epoch": self.current_epoch
+            "training_steps" : self.training_steps,
+            "current_epoch"  : self.current_epoch
         }
 
     def load_state_dict(self, state_dict: Dict[str, Any]) -> None:
@@ -189,12 +184,12 @@ class LossTracker(Callback):
         self.current_epoch += 1
 
     def plot_losses(
-        self,
-        moving_avg_window: int = 100,
-        title: str = "Training Loss",
-        save_path: Optional[str] = None,
-        figsize: tuple = (10, 6),
-        ylim: Optional[tuple] = None
+            self,
+            moving_avg_window: int = 100,
+            title: str = "Training Loss",
+            save_path: Optional[str] = None,
+            figsize: tuple = (10, 6),
+            ylim: Optional[tuple] = None
     ):
         if not self.training_losses:
             print("No losses collected yet!")
@@ -204,8 +199,8 @@ class LossTracker(Callback):
         steps = np.array(self.training_steps)
 
         if len(losses) >= moving_avg_window:
-            moving_avg = np.convolve(losses, np.ones(moving_avg_window)/moving_avg_window, mode='valid')
-            moving_avg_steps = steps[moving_avg_window-1:]
+            moving_avg = np.convolve(losses, np.ones(moving_avg_window) / moving_avg_window, mode='valid')
+            moving_avg_steps = steps[moving_avg_window - 1:]
         else:
             moving_avg = None
             print(f"Warning: Not enough data points for moving average with window {moving_avg_window}")
@@ -215,7 +210,7 @@ class LossTracker(Callback):
 
         if moving_avg is not None:
             plt.plot(moving_avg_steps, moving_avg,
-                    linewidth=2, label=f'Moving Average (window={moving_avg_window})')
+                     linewidth=2, label=f'Moving Average (window={moving_avg_window})')
 
         plt.xlabel('Training Step')
         plt.ylabel('Loss')
@@ -230,13 +225,12 @@ class LossTracker(Callback):
         plt.show()
 
 
-
 def plot_training_losses(
-    trainer,
-    moving_avg_window: int = 100,
-    title: str = "Training Loss",
-    save_path: Optional[str] = None,
-    figsize: tuple = (10, 6)
+        trainer,
+        moving_avg_window: int = 100,
+        title: str = "Training Loss",
+        save_path: Optional[str] = None,
+        figsize: tuple = (10, 6)
 ):
     """
     Plot training losses with optional moving average.
@@ -253,12 +247,12 @@ def plot_training_losses(
     epochs = np.arange(len(losses))
 
     # Calculate moving average
-    moving_avg = np.convolve(losses, np.ones(moving_avg_window)/moving_avg_window, mode='valid')
+    moving_avg = np.convolve(losses, np.ones(moving_avg_window) / moving_avg_window, mode='valid')
 
     # Create plot
     plt.figure(figsize=figsize)
     plt.plot(epochs, losses, alpha=0.3, label='Training Loss')
-    plt.plot(epochs[moving_avg_window-1:], moving_avg,
+    plt.plot(epochs[moving_avg_window - 1:], moving_avg,
              linewidth=2, label=f'Moving Average (window={moving_avg_window})')
 
     plt.xlabel('Batch')
@@ -270,7 +264,6 @@ def plot_training_losses(
     if save_path:
         plt.savefig(save_path)
     plt.show()
-
 
 
 if __name__ == "__main__":
