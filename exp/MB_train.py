@@ -30,10 +30,10 @@ from transformers import BertConfig
 
 # # Load MD data
 #################################################################################s
-# data = np.load("../../data/MB/1000_nobeta.0.1.npz", allow_pickle=True)
+# data = np.load("../data/MB/1000_nobeta.0.1.npz", allow_pickle=True)
 
 # wilder data
-data = np.load("../../data/MB/1000_nobeta.0.0065.D100.npz", allow_pickle=True)
+data = np.load("../data/MB/1000_nobeta.0.0065.D100.npz", allow_pickle=True)
 N = data["trajectories"].shape[0]
 
 # Subsample data
