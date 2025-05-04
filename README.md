@@ -1,3 +1,5 @@
+# AR_MD
+
 *UMich STATS700 - LLMs and Transformers* project code: MD trajectory prediction and state classification with autoregressive architectures
 
 - The architecture uses [foldingdiff](https://github.com/microsoft/foldingdiff) as a starting point.
