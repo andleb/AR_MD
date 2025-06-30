@@ -8,3 +8,4 @@
 
 
 
+If you use this software, please cite it by the provided [citation file](CITATION.cff).
