@@ -22,4 +22,4 @@ A BERT-style Transformer encoder is adapted to continuous trajectories (a linear
 - Requires [transformers](https://github.com/huggingface/transformers).
 - Uses some plotting functions from [mlcolvar](https://github.com/luigibonati/mlcolvar).
 
-If you use this software, please cite it by the provided [citation file](CITATION.cff).
+Please cite (for either the software or the report/poster) using the provided [citation file](CITATION.cff).
